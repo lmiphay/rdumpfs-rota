@@ -1,0 +1,53 @@
+#!/bin/bash
+
+SERVER=backupserver
+DST=/dumpfs/$HOSTNAME
+DAILY=/home
+WEEKLY="$DAILY
+	/etc
+	/root
+	/var/spool/cron/crontabs
+	/boot
+	/lib/modules
+	/var/db/pkg
+	/var/lib/portage
+	/usr/src/Config
+	$MONTHLY
+"
+OPTS=""
+
+[ -f /etc/rdumpfs-rota.conf ] && source /etc/rdumpfs-rota.conf
+
+[[ "$1" = -d ]] && DRYRUN="echo" && shift
+[[ "$1" = -f ]] && OPTS="-f $OPTS" && shift
+
+case "$1" in
+  daily)
+      SRCS=$DAILY
+      ;;
+  weekly)
+      SRCS=$WEEKLY
+      ;;
+  monthly)
+      mkdir -p $HOME/rootfs
+      mount -obind / $HOME/rootfs
+      SRCS="$WEEKLY $HOME/rootfs"
+      ;;
+  once)
+      shift
+      SRCS="$*"
+      ;;
+  *)
+      echo "Usage: $(basename $0) [-f] {daily|weekly|monthly|once}"
+      exit 1
+esac
+
+for src in $SRCS ; do
+    dest=$DST/$(echo $src|sed -e 's:/::;s:/:_:g')
+    ssh $SERVER mkdir -p $dest
+    $DRYRUN rdumpfs $OPTS $src ${SERVER}:$dest || break
+done
+
+[[ "$1" = "monthly" ]] && umount $HOME/rootfs && rmdir $HOME/rootfs
+
+exit 0
