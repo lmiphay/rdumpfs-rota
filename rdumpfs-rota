@@ -1,53 +1,46 @@
 #!/bin/bash
+set -e
 
-SERVER=backupserver
-DST=/dumpfs/$HOSTNAME
-DAILY=/home
-WEEKLY="$DAILY
-	/etc
-	/root
-	/var/spool/cron/crontabs
-	/boot
-	/lib/modules
-	/var/db/pkg
-	/var/lib/portage
-	/usr/src/Config
-	$MONTHLY
-"
-OPTS=""
+usage() { echo "Usage: $(basename $0) [-d] [-f] {init|list|rdumpfs|ldumpfs} {daily|weekly|monthly}"; exit 1; }
 
-[ -f /etc/rdumpfs-rota.conf ] && source /etc/rdumpfs-rota.conf
+bindrootfs() { src=$HOME/rootfs && mkdir -p $src && mount -obind / $src; }
+unbindrootfs() { umount $src && rmdir $src; }
 
-[[ "$1" = -d ]] && DRYRUN="echo" && shift
-[[ "$1" = -f ]] && OPTS="-f $OPTS" && shift
+[[ $# -eq 0 || "$1" = "-h" || "$1" = "--help" || "$1" = "help" ]] && usage
+[[ "$1" = "-d" ]] && DRYRUN="echo" && shift
 
-case "$1" in
-  daily)
-      SRCS=$DAILY
-      ;;
-  weekly)
-      SRCS=$WEEKLY
-      ;;
-  monthly)
-      mkdir -p $HOME/rootfs
-      mount -obind / $HOME/rootfs
-      SRCS="$WEEKLY $HOME/rootfs"
-      ;;
-  once)
-      shift
-      SRCS="$*"
-      ;;
-  *)
-      echo "Usage: $(basename $0) [-f] {daily|weekly|monthly|once}"
-      exit 1
-esac
+declare -A SRCS
+[[ -f /etc/rdumpfs-rota.conf ]] && source /etc/rdumpfs-rota.conf
 
-for src in $SRCS ; do
-    dest=$DST/$(echo $src|sed -e 's:/::;s:/:_:g')
-    ssh $SERVER mkdir -p $dest
-    $DRYRUN rdumpfs $OPTS $src ${SERVER}:$dest || break
-done
+[[ "$1" = "-f" ]] && OPTS="-f $OPTS" && shift
 
-[[ "$1" = "monthly" ]] && umount $HOME/rootfs && rmdir $HOME/rootfs
+cmd=$1 && shift
+
+[[ $# -gt 0 && ${SRCS[$1]+exists} ]] && sources=${SRCS[$1]} || sources="$*"
+
+for src in $sources ; do
+    destdir=$(echo $src|sed -e 's:/::;s:/:_:g')
+
+    case "$cmd" in
+	init)
+	    [[ -n "$REMOTESERVER" ]] && $DRYRUN ssh $REMOTESERVER mkdir -p $REMOTEDEST/$destdir
+	    [[ -n "$LOCALDEST" ]] && $DRYRUN mkdir -p $LOCALDEST/$destdir
+	    ;;
+	list)
+	    [[ -n "$REMOTESERVER" ]] && $DRYRUN rsync ${REMOTESERVER}:${REMOTEDEST}/$destdir
+	    [[ -n "$LOCALDEST" ]] && $DRYRUN ls ${LOCALDEST}/$destdir
+	    ;;
+	*dumpfs)
+	    [[ "$src" = "rootfs" ]] && bindrootfs
+	    [[ "$cmd" = "rdumpfs" ]] && $DRYRUN rdumpfs $OPTS $src ${REMOTESERVER}:${REMOTEDEST}/$destdir >>$LOGFILE 2>&1
+	    [[ "$cmd" = "ldumpfs" ]] && $DRYRUN rdumpfs $OPTS $src ${LOCALDEST}/$destdir >>$LOGFILE 2>&1
+	    [[ "$src" = "$HOME/rootfs" ]] && unbindrootfs
+	    ;;
+	*)
+	    usage
+	    ;;
+    esac
+    
+done 
 
 exit 0

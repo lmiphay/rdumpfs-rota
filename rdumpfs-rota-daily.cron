@@ -1,2 +1,3 @@
 #!/bin/bash
-/usr/bin/rdumpfs-rota daily
+/usr/bin/rdumpfs-rota rdumpfs daily
+/usr/bin/rdumpfs-rota ldumpfs daily
