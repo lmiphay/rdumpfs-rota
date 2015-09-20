@@ -5,7 +5,6 @@
 
 rdumpfs-rota \- a driver for rdumpfs to help automate daily/weekly/monthly backups
 
-
 .SH SYNOPSIS
 
 .B
@@ -18,11 +17,20 @@ is typically called from cron.
 
 It uses rdumpfs(1) and can be used to configure and backup to both local and remote destinations.
 
+.B rdumpfs-rota
+accepts these options:
+.IP \(bu
+-d debug/dryrun (show which rdumpfs calls are made, but don't actually make them)
+.IP \(bu
+-f force create the initial dump (an option passed through to rdumpfs when making the first backup)
+.IP \(bu
+-h show usage information
+
 Quickstart:
 .IP \(bu
 Configure local server settings in /etc/rdumpfs-rota.conf
 .IP \(bu
-Inititalise destination repositories:
+Create the destination repositories:
 .PP
 .RS 7
 rdumpfs-rota init daily
@@ -32,7 +40,7 @@ rdumpfs-rota init weekly
 rdumpfs-rota init monthly
 .RS -7
 .IP \(bu
-Trigger daily/weekly/monthly backups from the command line:
+Create the first dump for each of the default rota's:
 .PP
 .RS 7
 rdumpfs-rota -f rdumpfs daily
