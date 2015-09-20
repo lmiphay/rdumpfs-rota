@@ -1,0 +1,117 @@
+.\" Manpage for rdumpfs-rota
+.TH man 8 "10 May 2015" "1.0" "rdumpfs-rota man page"
+
+.SH NAME
+
+rdumpfs-rota \- a driver for rdumpfs to help automate daily/weekly/monthly backups
+
+
+.SH SYNOPSIS
+
+.B
+rdumpfs-rota [-d] [-f] {init|list|rdumpfs|ldumpfs} {daily|weekly|monthly}
+
+.SH DESCRIPTION
+
+.B rdumpfs-rota
+is typically called from cron.
+
+It uses rdumpfs(1) and can be used to configure and backup to both local and remote destinations.
+
+Quickstart:
+.IP \(bu
+Configure local server settings in /etc/rdumpfs-rota.conf
+.IP \(bu
+Inititalise destination repositories:
+.PP
+.RS 7
+rdumpfs-rota init daily
+.RS 0
+rdumpfs-rota init weekly
+.RS 0
+rdumpfs-rota init monthly
+.RS -7
+.IP \(bu
+Trigger daily/weekly/monthly backups from the command line:
+.PP
+.RS 7
+rdumpfs-rota -f rdumpfs daily
+.RS 0
+rdumpfs-rota -f rdumpfs weekly
+.RS 0
+rdumpfs-rota -f rdumpfs monthly
+.RS -7
+.IP \(bu
+Enable/disable one or more of the default cron entries:
+.PP
+.RS 7
+/etc/cron.daily/rdumpfs-rota-daily.cron
+.RS 0
+/etc/cron.weekly/rdumpfs-rota-weekly.cron
+.RS 0
+/etc/cron.monthly/rdumpfs-rota-monthly.cron
+.RS -7
+.IP \(bu
+Periodically monitor /var/log/rdumpfs.log to confirm backups are being made.
+
+.SH SYSTEM SETTINGS
+
+.TP
+.BI REMOTESERVER
+destination server for remote backups - default: backupserver
+.TP
+.BI REMOTEDEST
+destination directory on remote server for remote backups - default: /dumpfs/$HOSTNAME
+.TP
+.BI LOCALDEST
+destination directory for local backups - default: /dfs/$HOSTNAME
+.TP
+.BI OPTS
+rdumpfs options - default: ""
+.TP
+.BI LOGFILE
+default: /var/log/rdumpfs.log
+.TP
+.BI SRCS[daily]
+list of directories which should be backed up daily - default: /home
+.TP
+.BI SRCS[weekly]
+list of directories which should be backed up weekly - default: /etc /root /var/spool/cron/crontabs /boot /lib/modules /var/db/pkg /var/lib/portage /usr/src/Config
+/usr/portage/distfiles/git3-src
+.TP
+.BI SRCS[monthly]
+list of directories which should be backed up monthly -  default: rootfs
+
+.SH FILES
+
+.TP
+.BI /etc/rdumpfs-rota.conf
+rdumpfs-rota system configuration
+.TP
+.BI /var/log/rdumpfs.log
+rdumpfs output is logged to this file
+.TP
+.BI /etc/cron.daily/rdumpfs-rota-daily.cron
+cron entry for daily backups - edit/remote if you don't want daily backups to be made from cron.
+.TP
+.BI /etc/cron.weekly/rdumpfs-rota-weekly.cron
+cron entry for weekly backups - edit/remote if you don't want weekly backups to be made from cron.
+.TP
+.BI /etc/cron.monthly/rdumpfs-rota-monthly.cron
+cron entry for monthly backups - edit/remote if you don't want monthly backups to be made from cron.
+
+.SH BUGS
+
+None
+
+.SH SEE ALSO
+
+rdumpfs(8), gentoo-oam(8)
+
+.SH AUTHOR
+
+Paul Healy
+
+.SH COPYRIGHT
+
+GNU GENERAL PUBLIC LICENSE Version 2

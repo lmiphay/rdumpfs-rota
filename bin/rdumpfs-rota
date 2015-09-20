@@ -40,7 +40,7 @@ for src in $sources ; do
 	    usage
 	    ;;
     esac
-    
-done 
+
+done
 
 exit 0
