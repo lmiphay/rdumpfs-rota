@@ -33,4 +33,4 @@ rdumpfs-rota rdumpfs weekly
 rdumpfs-rota rdumpfs monthly
 ```
 
-Enable or disable the default local and remote backups by editing: /etc/cron.*/rdumpfs-rota-*.cron
+Enable or disable the default local and remote backups by editing: /etc/cron.\*/rdumpfs-rota-\*.cron
