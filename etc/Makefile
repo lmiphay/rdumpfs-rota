@@ -12,7 +12,8 @@ install:
 	install -d $(DESTDIR)/etc \
 		$(DESTDIR)/etc/cron.daily \
 		$(DESTDIR)/etc/cron.weekly \
-		$(DESTDIR)/etc/cron.monthly
+		$(DESTDIR)/etc/cron.monthly \
+		$(DESTDIR)/etc/logrotate.d
 	install --mode=0644 rdumpfs-rota.conf $(DESTDIR)/etc
 	install --mode=0755 rdumpfs-rota-daily.cron $(DESTDIR)/etc/cron.daily/rdumpfs-rota-daily
 	install --mode=0755 rdumpfs-rota-weekly.cron $(DESTDIR)/etc/cron.weekly/rdumpfs-rota-weekly
